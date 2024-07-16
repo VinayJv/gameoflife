@@ -1,95 +1,128 @@
-import Image from "next/image";
+/* eslint-disable react-hooks/exhaustive-deps */
+'use client';
+
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 
+const rows = 30;
+const columns = 30;
+const width = 600;
+const height = 600;
+const pixelSize = 20;
+
+type Board = number[][];
+
+const colors = ["black", "white"];
+
+function createBoardArray(): Board {
+  return Array.from({ length: rows }, () => Array.from({ length: columns }, () => 0));
+}
+
 export default function Home() {
+  const [toggle, setToggle] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const boardArray = createBoardArray();
+
+  const [boardState, setBoardState] = useState<Board>(boardArray);
+
+  useEffect(()=>{
+    if(!toggle){
+      return
+    }
+    const interval = setInterval(updateBoard, 100);
+    return () => clearInterval(interval);
+  },[toggle, updateBoard]);
+
+  useEffect(()=>{
+    if(canvasRef.current){
+      const context = canvasRef.current.getContext("2d");
+
+      // clearing board on each run
+      if(!context) return;
+      context?.clearRect(0, 0, width, height);
+      context.strokeStyle = "gray";
+      context.lineWidth = 0.1;
+
+      //filling the canvas
+      for(let r = 0; r < rows; ++r){
+        for(let c = 0; c < columns; ++c){
+          context.fillStyle = colors[boardState[r][c]];
+
+          context.fillRect(Math.floor(width / rows * r), Math.floor(height / columns * c), pixelSize, pixelSize);
+          context.strokeRect(Math.floor(width / rows * r), Math.floor(height / columns * c), pixelSize, pixelSize);
+        }
+      }
+    }
+  }, [boardState]);
+
+  function updateBoard(){
+    setBoardState((prevBoardState) => {
+      let newBoard = prevBoardState.map((r)=> [...r]);
+
+      for(let r = 0; r < rows ; ++r){
+        for(let c = 0; c < columns ; ++c){
+
+          const aliveCellsCount = checkNeighbours(r, c);
+
+          if(prevBoardState[r][c] === 0){
+            if(aliveCellsCount === 3){
+              newBoard[r][c] = 1;
+            }
+          } else {
+            if(aliveCellsCount !== 2 && aliveCellsCount !==3){
+              newBoard[r][c] = 0;
+            }
+          }
+        }
+      }
+      return newBoard;
+    })
+  }
+
+  function checkNeighbours(ri: number, ci: number){
+    let count = 0;
+    for(let neighbourRow = -1; neighbourRow <= 1;  ++neighbourRow){
+      for(let neighbourColumn = -1; neighbourColumn <=1; ++neighbourColumn){
+        if(neighbourRow != 0 || neighbourColumn != 0){
+
+          const r = (ri + neighbourRow + rows) % rows;
+          const c = (ci + neighbourColumn + columns ) % columns;
+
+
+          if(boardState[r][c] == 1){
+            ++count;
+          }
+        } 
+      }
+    }
+    return count;
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div className={styles.main}>
+      <h1>Conway&apos;s Game of Life</h1>
+      <canvas width={width} height={height} ref={canvasRef} onClick={(e)=>{
+
+        const x = Math.floor(e.nativeEvent.offsetX / pixelSize);
+        const y = Math.floor(e.nativeEvent.offsetY / pixelSize);
+
+        const updatedBoard = [...boardState];
+
+        if(updatedBoard[x][y] == 0){
+          updatedBoard[x][y] = 1;
+        } else {
+          updatedBoard[x][y] = 0;
+        }      
+
+        setBoardState(updatedBoard);
+      }}>
+
+      </canvas>
+      <div>
+        <button onClick={updateBoard}>Next</button>
+        <button onClick={() => setToggle(!toggle)}>{toggle ? "Pause" : "Play"}</button>
+        <button onClick={()=>setBoardState(createBoardArray())}>Reset</button>
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }

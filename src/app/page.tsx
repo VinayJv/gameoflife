@@ -3,6 +3,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
+import "./globals.css";
 
 const rows = 30;
 const columns = 30;
@@ -12,7 +13,7 @@ const pixelSize = 20;
 
 type Board = number[][];
 
-const colors = ["black", "white"];
+const colors = ["black", "yellow"];
 
 function createBoardArray(): Board {
   return Array.from({ length: rows }, () => Array.from({ length: columns }, () => 0));
@@ -115,9 +116,9 @@ export default function Home() {
         }      
 
         setBoardState(updatedBoard);
-      }}>
+      }} className={styles.canvas}>
 
-      </canvas>
+      </canvas >
       <div>
         <button onClick={updateBoard}>Next</button>
         <button onClick={() => setToggle(!toggle)}>{toggle ? "Pause" : "Play"}</button>

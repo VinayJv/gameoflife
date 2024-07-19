@@ -100,6 +100,15 @@ a {
   text-decoration: none;
 }
 
+button{
+  cursor: pointer;
+  color: black;
+  background-color: white;
+  margin: 1rem;
+  padding: 8px 1.5rem;
+  border: none;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

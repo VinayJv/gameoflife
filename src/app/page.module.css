@@ -8,6 +8,10 @@
   background-color: black;
   border: 5px solid white;
 }
+.canvas{
+  margin-top: 1rem;
+  border: 4px solid gray;
+}
 
 
 @media only screen and (max-width: 768px) {
